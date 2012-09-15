@@ -2,7 +2,7 @@
     package="me.ycy.notification.server.android">
 
     <application
-        android:icon="@drawable/android:star_big_on"
+        android:icon="@drawable/app_l"
         android:label="@string/app_name"
         android:debuggable="true">
 
