@@ -49,7 +49,7 @@ object NotificationService {
   }
 }
 
-class NotificationServer(p: NotificationService.Profile)
+class NotificationServer(val p: NotificationService.Profile)
 extends WebSocketServer(p.addr) {
   import NotificationService._
 
@@ -91,33 +91,10 @@ extends WebSocketServer(p.addr) {
     }
   }
 
-  private def notifySms(sms: Sms): Unit = {
-    val cc = CreateCommand(
-      client = "android",
-      title = "SMS from " + sms.from,
-      body = sms.text
-    )
-    sendToAll(cc.toJson.toString)
-  }
-
-  private def notifyCall(call: Call): Unit = {
-    val cc = CreateCommand(
-      client = "android",
-      title = "Phone call from " + call.from
-    )
-    sendToAll(cc.toJson.toString)
-  }
-
-  private def notifyEvent(e: Event): Unit = e match {
-    case sms: Sms ⇒ notifySms(sms)
-    case call: Call ⇒ notifyCall(call)
-  }
-
-
   val queueReader = new Thread {
     override def run() = {
       while (!Thread.interrupted()) {
-        try { notifyEvent(queue.take()) }
+        try { sendToAll(Renderer.render(queue.take(), p).toJson.toString) }
         catch { case _: InterruptedException ⇒ }
       }
     }
