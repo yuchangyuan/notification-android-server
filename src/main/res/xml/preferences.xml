@@ -28,5 +28,14 @@
           android:numeric="integer"
           android:title="Port"
           android:key="port" />
-    </PreferenceCategory>    
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Notification style">
+      <CheckBoxPreference
+          android:title="Hide content"
+          android:defaultValue="true"
+          android:summaryOn="Hide the content."
+          android:summaryOff="Show the content directly."
+          android:key="hideContent" />
+    </PreferenceCategory>
 </PreferenceScreen>

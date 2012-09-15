@@ -33,6 +33,7 @@ object NotificationService {
     val serverEnabled = "serverEnabled"
     val port = "port"
     val bindLocal = "bindLocal"
+    val hideContent = "hideContent"
   }
 
   val queue: LinkedBlockingQueue[Event] = new LinkedBlockingQueue[Event]()
@@ -42,13 +43,15 @@ object NotificationService {
     context.startService(i)
   }
 
+  trait Profile {
+    val addr: InetSocketAddress
+    def hideContent(): Boolean
+  }
 }
 
-class NotificationServer(addr: InetSocketAddress)
-extends WebSocketServer(addr) {
+class NotificationServer(p: NotificationService.Profile)
+extends WebSocketServer(p.addr) {
   import NotificationService._
-
-  def this(port: Int) = this(new InetSocketAddress(port))
 
   override def onOpen(c: WebSocket, handshake: ClientHandshake): Unit = {
     System.out.println(c + " connected" )
@@ -140,7 +143,7 @@ class NotificationService extends Service {
 
   private def nsStart(): Unit = nsSync.synchronized {
     if (ns == null) {
-      ns = new NotificationServer(7765)
+      ns = new NotificationServer(createProfile())
       ns.start()
       showNotification(
         getText(R.string.service_started).toString,
@@ -157,6 +160,26 @@ class NotificationService extends Service {
         getText(R.string.service_stopped).toString,
         getText(R.string.service_label).toString,
         getText(R.string.service_stopped).toString)
+    }
+  }
+
+  private def createProfile() = {
+    val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+    val port = {
+      try { Integer.parseInt(prefs.getString(conf.port, "7765")) }
+      catch { case _: Throwable ⇒ 7765 }
+    }
+    val bindAddr =
+      if (prefs.getBoolean(conf.bindLocal, true))
+        new InetSocketAddress("127.0.0.1", port)
+      else
+        new InetSocketAddress(port)
+
+    new Profile {
+      val addr = bindAddr
+      def hideContent(): Boolean = {
+        prefs.getBoolean(conf.hideContent, true)
+      }
     }
   }
 
