@@ -122,7 +122,32 @@ extends WebSocketServer(addr) {
 
 class NotificationService extends Service {
   import NotificationService._
-  var ns: NotificationServer = null
+
+  //  ----------------- websocket server -----------------
+  private var ns: NotificationServer = null
+  private val nsSync = new Object
+
+  private def nsStart(): Unit = nsSync.synchronized {
+    if (ns == null) {
+      ns = new NotificationServer(7765)
+      ns.start()
+    }
+    showNotification(
+      getText(R.string.service_started).toString,
+      getText(R.string.service_label).toString,
+      getText(R.string.service_started).toString)
+  }
+
+  private def nsStop(): Unit = nsSync.synchronized {
+    if (ns != null) {
+      ns.stop()
+      ns = null
+    }
+    showNotification(
+      getText(R.string.service_stopped).toString,
+      getText(R.string.service_label).toString,
+      getText(R.string.service_stopped).toString)
+  }
 
   //  ------------------- notification -------------------
   val NotificationId = R.string.service_started
@@ -145,25 +170,18 @@ class NotificationService extends Service {
     n.setLatestEventInfo(
       this, title,
       body, contentIntent
-    );
+    )
 
     startForeground(NotificationId, n)
   }
 
   //  ---------------- service interface -----------------
   override def onCreate(): Unit = {
-    // get address & port
-    // create websocket
-    ns = new NotificationServer(7765)
-    ns.start()
-    showNotification(
-      getText(R.string.service_started).toString,
-      getText(R.string.service_label).toString,
-      getText(R.string.service_started).toString)
+    nsStart()
   }
 
   override def onDestroy(): Unit = {
-    ns.stop()
+    nsStop()
   }
 
   override def onStartCommand(i: Intent, flags: Int, startId: Int): Int = {

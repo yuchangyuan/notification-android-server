@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">Notification Server</string>
     <string name="service_started">Service started</string>
+    <string name="service_stopped">Service stopped</string>
     <string name="service_label">notification service</string>
 </resources>
