@@ -30,6 +30,9 @@ object NotificationService {
   case class Sms(from: String, text: String) extends Event
   case class Call(from: String) extends Event
 
+  // bundle extra
+  val Run = "RUN"
+
   val queue: LinkedBlockingQueue[Event] = new LinkedBlockingQueue[Event]()
 }
 
@@ -131,22 +134,22 @@ class NotificationService extends Service {
     if (ns == null) {
       ns = new NotificationServer(7765)
       ns.start()
+      showNotification(
+        getText(R.string.service_started).toString,
+        getText(R.string.service_label).toString,
+        getText(R.string.service_started).toString)
     }
-    showNotification(
-      getText(R.string.service_started).toString,
-      getText(R.string.service_label).toString,
-      getText(R.string.service_started).toString)
   }
 
   private def nsStop(): Unit = nsSync.synchronized {
     if (ns != null) {
       ns.stop()
       ns = null
+      showNotification(
+        getText(R.string.service_stopped).toString,
+        getText(R.string.service_label).toString,
+        getText(R.string.service_stopped).toString)
     }
-    showNotification(
-      getText(R.string.service_stopped).toString,
-      getText(R.string.service_label).toString,
-      getText(R.string.service_stopped).toString)
   }
 
   //  ------------------- notification -------------------
@@ -185,6 +188,9 @@ class NotificationService extends Service {
   }
 
   override def onStartCommand(i: Intent, flags: Int, startId: Int): Int = {
+    val run = i.getBooleanExtra(Run, true)
+    if (run) { nsStart() } else { nsStop() }
+
     Service.START_STICKY
   }
 

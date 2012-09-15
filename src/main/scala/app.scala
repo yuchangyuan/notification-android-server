@@ -14,6 +14,7 @@ class MainActivity extends Activity with TypedActivity {
 
     // start server
     val i: Intent = new Intent(this, classOf[NotificationService])
+    i.putExtra(NotificationService.Run, true)
     startService(i)
   }
 }
