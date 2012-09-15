@@ -5,13 +5,11 @@ import android.os.Bundle
 
 import android.content.Intent
 import android.content.Context
-import android.content.BroadcastReceiver
 import android.app.Service
 import android.app.NotificationManager
 import android.app.Notification
 import android.app.PendingIntent
 import android.os.{Binder, IBinder}
-import android.telephony.SmsMessage
 import android.preference.PreferenceManager
 
 import scala.collection.JavaConversions._
@@ -38,6 +36,12 @@ object NotificationService {
   }
 
   val queue: LinkedBlockingQueue[Event] = new LinkedBlockingQueue[Event]()
+
+  def startStopService(context: Context): Unit = {
+    val i: Intent = new Intent(context, classOf[NotificationService])
+    context.startService(i)
+  }
+
 }
 
 class NotificationServer(addr: InetSocketAddress)
@@ -206,21 +210,4 @@ class NotificationService extends Service {
   }
 
   override def onBind(i: Intent) = binder
-}
-
-
-class SmsReceiver extends BroadcastReceiver {
-  import NotificationService._
-
-  override def onReceive(ctx: Context, i: Intent): Unit = {
-    val bundle = i.getExtras()
-    val pdus = bundle.get("pdus").asInstanceOf[Array[Object]]
-    for (i ← 0 until pdus.size) {
-      val msg = SmsMessage.createFromPdu(pdus(i).asInstanceOf[Array[Byte]])
-      val body = msg.getDisplayMessageBody
-      val from = msg.getDisplayOriginatingAddress
-
-      queue.put(Sms(from, body))
-    }
-  }
 }

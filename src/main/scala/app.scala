@@ -8,12 +8,7 @@ import android.preference.PreferenceActivity
 import android.preference.Preference
 
 class MainActivity extends PreferenceActivity with TypedActivity {
-  import NotificationService.conf
-
-  def startStopService(): Unit = {
-    val i: Intent = new Intent(this, classOf[NotificationService])
-    startService(i)
-  }
+  import NotificationService._
 
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
@@ -24,12 +19,12 @@ class MainActivity extends PreferenceActivity with TypedActivity {
     serverEnabled.setOnPreferenceChangeListener(
       new Preference.OnPreferenceChangeListener {
         def onPreferenceChange(p: Preference, v: Object) = {
-          startStopService()
+          startStopService(MainActivity.this)
           true
         }
       }
     )
 
-    startStopService()
+    startStopService(this)
   }
 }
