@@ -7,6 +7,9 @@ import android.content.Intent
 import android.content.Context
 import android.content.BroadcastReceiver
 import android.app.Service
+import android.app.NotificationManager
+import android.app.Notification
+import android.app.PendingIntent
 import android.os.{Binder, IBinder}
 import android.telephony.SmsMessage
 
@@ -121,11 +124,42 @@ class NotificationService extends Service {
   import NotificationService._
   var ns: NotificationServer = null
 
+  //  ------------------- notification -------------------
+  val NotificationId = R.string.service_started
+
+  lazy val nm: NotificationManager =
+    getSystemService(Context.NOTIFICATION_SERVICE).
+    asInstanceOf[NotificationManager]
+
+  private def showNotification(scroll: String, title: String, body: String) {
+    val n = new Notification(
+      R.drawable.app_n, scroll,
+      System.currentTimeMillis()
+    )
+
+    val contentIntent = PendingIntent.getActivity(
+      this, 0,
+      new Intent(this, classOf[MainActivity]), 0
+    )
+
+    n.setLatestEventInfo(
+      this, title,
+      body, contentIntent
+    );
+
+    startForeground(NotificationId, n)
+  }
+
+  //  ---------------- service interface -----------------
   override def onCreate(): Unit = {
     // get address & port
     // create websocket
     ns = new NotificationServer(7765)
     ns.start()
+    showNotification(
+      getText(R.string.service_started).toString,
+      getText(R.string.service_label).toString,
+      getText(R.string.service_started).toString)
   }
 
   override def onDestroy(): Unit = {
