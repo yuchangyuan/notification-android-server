@@ -4,17 +4,32 @@ import _root_.android.app.Activity
 import _root_.android.os.Bundle
 
 import android.content.Intent
+import android.preference.PreferenceActivity
+import android.preference.Preference
 
-class MainActivity extends Activity with TypedActivity {
+class MainActivity extends PreferenceActivity with TypedActivity {
+  import NotificationService.conf
+
+  def startStopService(): Unit = {
+    val i: Intent = new Intent(this, classOf[NotificationService])
+    startService(i)
+  }
+
   override def onCreate(bundle: Bundle) {
     super.onCreate(bundle)
-    setContentView(R.layout.main)
 
-    findView(TR.textview).setText("hello, world!")
+    addPreferencesFromResource(R.xml.preferences)
 
-    // start server
-    val i: Intent = new Intent(this, classOf[NotificationService])
-    i.putExtra(NotificationService.Run, true)
-    startService(i)
+    val serverEnabled = findPreference(conf.serverEnabled)
+    serverEnabled.setOnPreferenceChangeListener(
+      new Preference.OnPreferenceChangeListener {
+        def onPreferenceChange(p: Preference, v: Object) = {
+          startStopService()
+          true
+        }
+      }
+    )
+
+    startStopService()
   }
 }

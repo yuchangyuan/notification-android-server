@@ -12,6 +12,7 @@ import android.app.Notification
 import android.app.PendingIntent
 import android.os.{Binder, IBinder}
 import android.telephony.SmsMessage
+import android.preference.PreferenceManager
 
 import scala.collection.JavaConversions._
 
@@ -30,8 +31,11 @@ object NotificationService {
   case class Sms(from: String, text: String) extends Event
   case class Call(from: String) extends Event
 
-  // bundle extra
-  val Run = "RUN"
+  object conf {
+    val serverEnabled = "serverEnabled"
+    val port = "port"
+    val bindLocal = "bindLocal"
+  }
 
   val queue: LinkedBlockingQueue[Event] = new LinkedBlockingQueue[Event]()
 }
@@ -188,7 +192,9 @@ class NotificationService extends Service {
   }
 
   override def onStartCommand(i: Intent, flags: Int, startId: Int): Int = {
-    val run = i.getBooleanExtra(Run, true)
+    val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+    val run = prefs.getBoolean(conf.serverEnabled, true)
+
     if (run) { nsStart() } else { nsStop() }
 
     Service.START_STICKY

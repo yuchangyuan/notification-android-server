@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Start/stop server">
+      <CheckBoxPreference
+          android:title="Enable notification server"
+          android:defaultValue="true"
+          android:summaryOn="Notification server is running"
+          android:summaryOff="Notification server is stopped"
+          android:disableDependentsState="true"
+          android:key="serverEnabled" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="Server configure">
+      <CheckBoxPreference
+          android:title="Listen on local address"
+          android:defaultValue="true"
+          android:summaryOn="Listen on 127.0.0.1 only."
+          android:summaryOff="Listen on all net interfaces."
+          android:disableDependentsState="true"
+          android:dependency="serverEnabled"
+          android:key="bindLocal" />
+      <EditTextPreference
+          android:summary="Server port"
+          android:defaultValue="7765"
+          android:dependency="serverEnabled"
+          android:numeric="integer"
+          android:title="Port"
+          android:key="port" />
+    </PreferenceCategory>    
+</PreferenceScreen>
