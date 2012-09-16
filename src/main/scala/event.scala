@@ -49,7 +49,7 @@ class SmsReceiver extends BroadcastReceiver {
     val smss = retrieveSms(i)
 
     for (sms ← smss) {
-      queue.put(sms)
+      startStopServiceExtra(ctx, sms)
     }
   }
 }
@@ -73,7 +73,7 @@ class PhoneStateReceiver extends BroadcastReceiver {
 
     state match {
       case EXTRA_STATE_RINGING ⇒
-        queue.put(Call(number))
+        startStopServiceExtra(ctx, Call(number))
       // case EXTRA_STATE_OFFHOOK ⇒
       // case EXTRA_STATE_IDLE ⇒
       case _ ⇒

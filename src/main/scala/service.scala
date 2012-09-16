@@ -31,6 +31,8 @@ object NotificationService {
   case class Sms(from: String, text: String) extends Event
   case class Call(from: String) extends Event
 
+  val ExtraData = "data"
+
   object conf {
     val serverEnabled = "serverEnabled"
     val port = "port"
@@ -42,6 +44,12 @@ object NotificationService {
 
   def startStopService(context: Context): Unit = {
     val i: Intent = new Intent(context, classOf[NotificationService])
+    context.startService(i)
+  }
+
+  def startStopServiceExtra(context: Context, data: Serializable): Unit = {
+    val i: Intent = new Intent(context, classOf[NotificationService])
+    i.putExtra(ExtraData, data)
     context.startService(i)
   }
 
@@ -211,6 +219,13 @@ class NotificationService extends Service {
     val run = prefs.getBoolean(conf.serverEnabled, true)
 
     if (run) { nsStart() } else { nsStop() }
+
+    if (i != null) {
+      i.getSerializableExtra(ExtraData) match {
+        case e: Event ⇒ queue.put(e)
+        case _ ⇒
+      }
+    }
 
     Service.START_STICKY
   }
