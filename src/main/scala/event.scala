@@ -12,17 +12,44 @@ class SmsReceiver extends BroadcastReceiver {
 
   val Tag = "NsSms"
 
-  override def onReceive(ctx: Context, i: Intent): Unit = {
-    Log.d(Tag, "get sms")
+  def retrieveSms(i: Intent): List[Sms] = {
+    var ret = List[(String, StringBuilder, Long)]()
 
     val bundle = i.getExtras()
     val pdus = bundle.get("pdus").asInstanceOf[Array[Object]]
+
+    if (pdus == null) return List()
+
     for (i ← 0 until pdus.size) {
       val msg = SmsMessage.createFromPdu(pdus(i).asInstanceOf[Array[Byte]])
-      val body = msg.getDisplayMessageBody
-      val from = msg.getDisplayOriginatingAddress
 
-      queue.put(Sms(from, body))
+      if (msg != null) {
+        Log.d(Tag, "sms[" + i + "] @ " + msg.getTimestampMillis())
+
+        val body = msg.getDisplayMessageBody
+        val from = msg.getDisplayOriginatingAddress
+        val ts = msg.getTimestampMillis
+
+        if ((ret.size > 0) && (ret.head._1 == from) &&
+            (ret.head._3 == ts)) {
+          ret.head._2 ++= body
+        }
+        else {
+          ret ::= (from, new StringBuilder(body), ts)
+        }
+      }
+    }
+
+    ret.reverse.map(x ⇒ Sms(x._1, x._2.mkString))
+  }
+
+  override def onReceive(ctx: Context, i: Intent): Unit = {
+    Log.d(Tag, "get sms")
+
+    val smss = retrieveSms(i)
+
+    for (sms ← smss) {
+      queue.put(sms)
     }
   }
 }
