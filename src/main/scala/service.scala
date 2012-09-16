@@ -136,7 +136,9 @@ class NotificationService extends Service {
       showNotification(
         getText(R.string.service_stopped).toString,
         getText(R.string.service_label).toString,
-        getText(R.string.service_stopped).toString)
+        getText(R.string.service_stopped).toString,
+        R.drawable.app_n1
+      )
     }
   }
 
@@ -167,9 +169,14 @@ class NotificationService extends Service {
     getSystemService(Context.NOTIFICATION_SERVICE).
     asInstanceOf[NotificationManager]
 
-  private def showNotification(scroll: String, title: String, body: String) {
+  private def showNotification(
+    scroll: String,
+    title: String,
+    body: String,
+    icon: Int = R.drawable.app_n
+  ) {
     val n = new Notification(
-      R.drawable.app_n, scroll,
+      icon, scroll,
       System.currentTimeMillis()
     )
 
