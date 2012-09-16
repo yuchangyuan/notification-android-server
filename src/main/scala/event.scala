@@ -40,7 +40,7 @@ class SmsReceiver extends BroadcastReceiver {
       }
     }
 
-    ret.reverse.map(x ⇒ Sms(x._1, x._2.mkString))
+    ret.reverse.map(x ⇒ Sms(x._1, x._2.mkString, x._3))
   }
 
   override def onReceive(ctx: Context, i: Intent): Unit = {

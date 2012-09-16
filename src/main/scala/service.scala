@@ -28,7 +28,7 @@ import me.ycy.notification.api._
 
 object NotificationService {
   sealed trait Event
-  case class Sms(from: String, text: String) extends Event
+  case class Sms(from: String, text: String, time: Long) extends Event
   case class Call(from: String) extends Event
 
   val ExtraData = "data"
