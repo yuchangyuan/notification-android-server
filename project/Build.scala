@@ -6,7 +6,7 @@ import AndroidKeys._
 object General {
   val settings = Defaults.defaultSettings ++ Seq (
     name := "notification-android-server",
-    version := "0.2",
+    version := "0.3-SNAPSHOT",
     versionCode := 0,
     scalaVersion := "2.9.2",
     platformName in Android := "android-10",
