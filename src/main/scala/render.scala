@@ -13,16 +13,32 @@ object Renderer {
   def renderSms(from: String, text: String, p: Profile) = {
     var title: String = null
     var body: String = null
+    val name = p.queryName(from)
 
     if (p.hideContent()) {
       title = "New SMS"
+      val src = name match {
+        case None ⇒ <span><strong>{from}</strong></span>
+        case Some(n) ⇒ <span><strong>{n}</strong> <em>{from}</em></span>
+      }
       body = "<div class='collapsed'><div>...</div>" +
-        "<div>" + from + "<br/>" + text +
+        "<div>" + src + "<br/>" + text +
         "</div></div>"
     }
     else {
-      title = "SMS from " + from
-      body = text
+      title = name match {
+        case None ⇒ "SMS from " + <strong>{from}</strong>
+        case Some(n) ⇒ "SMS from " + <strong>{n}</strong>
+      }
+
+      body = name match {
+        case None ⇒ text
+        case Some(_) ⇒ {
+          "<div><div><em>" +
+          from +
+          "</em><div>" + text + "</div></div>"
+        }
+      }
     }
 
     CreateCommand(title = title, body = body, client = "android")

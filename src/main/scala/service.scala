@@ -56,6 +56,7 @@ object NotificationService {
   trait Profile {
     val addr: InetSocketAddress
     def hideContent(): Boolean
+    def queryName(number: String): Option[String]
   }
 }
 
@@ -167,9 +168,32 @@ class NotificationService extends Service {
         new InetSocketAddress(port)
 
     new Profile {
+      import android.net.Uri
+      import android.provider.ContactsContract.PhoneLookup
+      import android.content.ContentResolver
+
       val addr = bindAddr
       def hideContent(): Boolean = {
         prefs.getBoolean(conf.hideContent, true)
+      }
+
+      def queryName(number: String): Option[String] = {
+        val resolver = NotificationService.this.getContentResolver;
+        val uri = Uri.withAppendedPath(
+          PhoneLookup.CONTENT_FILTER_URI,
+          Uri.encode(number)
+        )
+
+        val cur = resolver.query(
+          uri,
+          Array("display_name"),
+          null, null, null
+        )
+
+        val ret = if (cur.moveToFirst()) Some(cur.getString(0)) else None
+        cur.close
+
+        ret
       }
     }
   }
