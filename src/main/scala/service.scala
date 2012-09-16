@@ -22,6 +22,8 @@ import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.UUID
 
+import android.util.Log
+
 import me.ycy.notification.api._
 
 object NotificationService {
@@ -53,8 +55,10 @@ class NotificationServer(val p: NotificationService.Profile)
 extends WebSocketServer(p.addr) {
   import NotificationService._
 
+  val Tag = "NotificationServer"
+
   override def onOpen(c: WebSocket, handshake: ClientHandshake): Unit = {
-    System.out.println(c + " connected" )
+    Log.d(Tag, c + " connected")
     try {
       val cc = CreateCommand(
         client = "android",
@@ -77,12 +81,12 @@ extends WebSocketServer(p.addr) {
   }
 
   override def onMessage(c: WebSocket, m: String): Unit = {
-    println(c + ": " + m);
+    Log.d(Tag, c.getRemoteSocketAddress + " get message " + m);
     // only need to process closed event
   }
 
   override def onError(c: WebSocket, ex: Exception): Unit = {
-    println(c + "exception " + ex)
+    Log.d(Tag, c.getRemoteSocketAddress() + " exception " + ex)
   }
 
   def sendToAll(m: String) = this.synchronized {
