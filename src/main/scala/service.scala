@@ -126,6 +126,7 @@ extends WebSocketServer(p.addr) {
 
 class NotificationService extends Service {
   import NotificationService._
+  val Tag = "NotificationService"
 
   //  ----------------- websocket server -----------------
   private var ns: NotificationServer = null
@@ -239,6 +240,7 @@ class NotificationService extends Service {
   }
 
   override def onStartCommand(i: Intent, flags: Int, startId: Int): Int = {
+    Log.d(Tag, "start command")
     val prefs = PreferenceManager.getDefaultSharedPreferences(this)
     val run = prefs.getBoolean(conf.serverEnabled, true)
 
