@@ -100,6 +100,7 @@ extends WebSocketServer(p.addr) {
 
   def sendToAll(m: String) = this.synchronized {
     for (c ← asScalaSet(connections())) {
+      Log.e(Tag, "try send to " + c.getRemoteSocketAddress)
       try { c.send(m) } catch { case _: Throwable ⇒ }
     }
   }
@@ -107,7 +108,11 @@ extends WebSocketServer(p.addr) {
   val queueReader = new Thread {
     override def run() = {
       while (!Thread.interrupted()) {
-        try { sendToAll(Renderer.render(queue.take(), p).toJson.toString) }
+        try {
+          val e = queue.take()
+          Log.e(Tag, "queue get event.")
+          sendToAll(Renderer.render(e, p).toJson.toString)
+        }
         catch { case _: InterruptedException ⇒ }
       }
     }
@@ -248,7 +253,10 @@ class NotificationService extends Service {
 
     if (i != null) {
       i.getSerializableExtra(ExtraData) match {
-        case e: Event ⇒ queue.put(e)
+        case e: Event ⇒ {
+          Log.d(Tag, "with event")
+          queue.put(e)
+        }
         case _ ⇒
       }
     }
