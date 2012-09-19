@@ -4,7 +4,11 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import me.ycy.notification.api._
 
+import android.util.Log
+
 object Renderer {
+  val Tag = "ns.Renderer"
+
   import NotificationService._
 
   def render(e: Event, p: Profile): CreateCommand = e match {
@@ -65,8 +69,8 @@ object Renderer {
       title = "Incoming call"
       val src = name match {
         case None ⇒ "call from <em>" + from + "</em>"
-        case Some(n) ⇒ "call from <strong>" + n + "</strong><br />"
-          "<em>" + from + "</em"
+        case Some(n) ⇒ "call from <strong>" + n + "</strong><br />" +
+          "<em>" + from + "</em>"
       }
       body = "<div class='collapsed'><div>...</div>" +
             "<div>" + src + "</div>" +
@@ -79,7 +83,7 @@ object Renderer {
           body = ""
         }
         case Some(n) ⇒ {
-          title = "Incoming call from <strong" + n + "</strong>"
+          title = "Incoming call from <strong>" + n + "</strong>"
           body = "<em>" + from + "</em>"
         }
       }

@@ -254,7 +254,7 @@ class NotificationService extends Service {
     if (i != null) {
       i.getSerializableExtra(ExtraData) match {
         case e: Event ⇒ {
-          Log.d(Tag, "with event")
+          Log.d(Tag, "with event, type = " + e.getClass.getName)
           queue.put(e)
         }
         case _ ⇒
