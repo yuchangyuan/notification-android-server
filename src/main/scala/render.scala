@@ -23,39 +23,61 @@ object Renderer {
     val date = new Date(time)
     val fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
+    val iconStyle = List(
+      "width:48px;",
+      "height:48px;",
+      "float:left;",
+      "position:relative;",
+      "left:-0.5em;",
+      "padding:0px;"
+    ).mkString
+
+    val hr = List(
+      "<hr style='",
+      "border:none;",
+      "height:1px;",
+      "background:rgba(128,128,128,0.4);",
+      "' />"
+    ).mkString
+
+    val phNo = <span style="color:blue;">{from}</span>
+
+    // small size date1
+    val date1 = <span style="font-size:0.75em">
+      <em>{fmt.format(date)}</em></span>
+
+    val iconDiv = <div style={iconStyle}>
+      <img src="icons/android/smsmms.svg"
+           style='max-width:100%;max-height:100%;' />
+      </div>
+
+
     if (p.hideContent()) {
-      title = "New SMS (<em>" + fmt.format(date) + "</em>)"
+      title = "New SMS " + date1
       val src = name match {
-        case None ⇒ <span><strong>{from}</strong></span>
-        case Some(n) ⇒ <span><strong>{n}</strong> <em>{from}</em></span>
+        case None ⇒ <span>{phNo}</span>
+        case Some(n) ⇒ <span>{n} {phNo}</span>
       }
       body = "<div class='collapsed'><div>...</div>" +
         "<div>" + src + "<br/>" +
-        "<em>" + date + "</em><br/>" +
-        "<hr style='border-width:1px;'>" +
+        hr +
         text.replaceAll("\n", "<br />") +
         "</div></div>"
     }
     else {
       title = name match {
-        case None ⇒ "SMS from " + <strong>{from}</strong>
-        case Some(n) ⇒ "SMS from " + <strong>{n}</strong>
+        case None ⇒ "SMS from " + phNo
+        case Some(n) ⇒ "SMS from " + n
       }
 
-      body = name match {
-        case None ⇒ {
-          "<div><em>" + date + "</em></div>" +
-          "<hr style='border-width:1px;'>" +
-          "<div>" + text.replaceAll("\n", "<br />") + "</div>"
-        }
-        case Some(_) ⇒ {
-          "<div>" + from + "</div>" +
-          "<div><em>" + date + "</em></div>" +
-          "<hr style='border-width:1px;'>" +
-          "<div>" + text.replaceAll("\n", "<br />") + "</div>"
-        }
-      }
+      body = "<div>" + date1 + "</div>" +
+        hr + "<div>" + text.replaceAll("\n", "<br />") + "</div>"
+      if (name.isDefined) { body = "<div>" + phNo + "</div>" + body }
     }
+
+    title = iconDiv + title
+    body = "<div style='position:relative;left:-1em;min-height:0.5em;'>" +
+      body + "</div>"
 
     CreateCommand(title = title, body = body, client = "android")
   }
@@ -65,12 +87,13 @@ object Renderer {
     var body: String = null
     val name = p.queryName(from)
 
+    val phNo = <span style="color:blue;">{from}</span>
+
     if (p.hideContent()) {
       title = "Incoming call"
       val src = name match {
-        case None ⇒ "call from <em>" + from + "</em>"
-        case Some(n) ⇒ "call from <strong>" + n + "</strong><br />" +
-          "<em>" + from + "</em>"
+        case None ⇒ "call from " + phNo
+        case Some(n) ⇒ "call from " + n + "<br />" + phNo
       }
       body = "<div class='collapsed'><div>...</div>" +
             "<div>" + src + "</div>" +
@@ -79,12 +102,12 @@ object Renderer {
     else {
       name match {
         case None ⇒ {
-          title = "Incoming call from <em>" + from + "</em>"
+          title = "Incoming call from " + phNo
           body = ""
         }
         case Some(n) ⇒ {
-          title = "Incoming call from <strong>" + n + "</strong>"
-          body = "<em>" + from + "</em>"
+          title = "Incoming call from " + n
+          body = phNo.toString
         }
       }
     }
