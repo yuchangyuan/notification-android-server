@@ -27,9 +27,13 @@ import android.util.Log
 import me.ycy.notification.api._
 
 object NotificationService {
-  sealed trait Event
-  case class Sms(from: String, text: String, time: Long) extends Event
-  case class Call(from: String) extends Event
+  sealed trait Event extends Serializable
+  sealed trait RenderEvent extends Event
+  case class Sms(from: String, text: String, time: Long) extends RenderEvent
+  case class Call(from: String) extends RenderEvent
+
+  // client number change
+  case class ClientChange(newClient: Boolean, n: Int) extends Event
 
   val ExtraData = "data"
 
@@ -40,7 +44,8 @@ object NotificationService {
     val hideContent = "hideContent"
   }
 
-  val queue: LinkedBlockingQueue[Event] = new LinkedBlockingQueue[Event]()
+  val queue: LinkedBlockingQueue[RenderEvent] =
+    new LinkedBlockingQueue[RenderEvent]()
 
   def startStopService(context: Context): Unit = {
     val i: Intent = new Intent(context, classOf[NotificationService])
@@ -57,6 +62,7 @@ object NotificationService {
     val addr: InetSocketAddress
     def hideContent(): Boolean
     def queryName(number: String): Option[String]
+    def sendEvent(e: Event)
   }
 }
 
@@ -75,6 +81,8 @@ extends WebSocketServer(p.addr) {
         notificationClass = List("low-urgency")
       )
       c.send(cc.toJson.toString)
+
+      p.sendEvent(ClientChange(true, connections().size))
     }
     catch {
       case _: Throwable ⇒
@@ -87,6 +95,7 @@ extends WebSocketServer(p.addr) {
     reason: String,
     remote: Boolean
   ): Unit = {
+      p.sendEvent(ClientChange(false, connections().size))
   }
 
   override def onMessage(c: WebSocket, m: String): Unit = {
@@ -201,6 +210,10 @@ class NotificationService extends Service {
 
         ret
       }
+
+      def sendEvent(e: Event) = {
+        startStopServiceExtra(NotificationService.this, e)
+      }
     }
   }
 
@@ -255,7 +268,19 @@ class NotificationService extends Service {
       i.getSerializableExtra(ExtraData) match {
         case e: Event ⇒ {
           Log.d(Tag, "with event, type = " + e.getClass.getName)
-          queue.put(e)
+          e match {
+            case re: RenderEvent ⇒ queue.put(re)
+            case ClientChange(nc, n) ⇒ {
+              val msg = if (nc) getText(R.string.client_connected)
+                        else getText(R.string.client_disconnected)
+              showNotification(
+                msg.toString,
+                getText(R.string.service_label).toString,
+                getText(R.string.service_started).toString + ", " +
+                n.toString + " client connected."
+              )
+            }
+          }
         }
         case _ ⇒
       }

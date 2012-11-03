@@ -3,4 +3,6 @@
     <string name="service_started">Service started</string>
     <string name="service_stopped">Service stopped</string>
     <string name="service_label">notification service</string>
+    <string name="client_connected">a new client connected</string>
+    <string name="client_disconnected">a client disconnected</string>
 </resources>

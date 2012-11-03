@@ -11,7 +11,7 @@ object Renderer {
 
   import NotificationService._
 
-  def render(e: Event, p: Profile): CreateCommand = e match {
+  def render(e: RenderEvent, p: Profile): CreateCommand = e match {
     case Sms(from, text, time) ⇒ renderSms(from, text, time, p)
     case Call(from) ⇒ renderCall(from, p)
   }
