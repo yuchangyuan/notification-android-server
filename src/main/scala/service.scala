@@ -14,9 +14,12 @@ import android.preference.PreferenceManager
 
 import scala.collection.JavaConversions._
 
-import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
+import org.java_websocket.WebSocket
+import org.java_websocket.handshake.ClientHandshake
+import org.java_websocket.handshake.ServerHandshakeBuilder
+import org.java_websocket.server.WebSocketServer
+import org.java_websocket.exceptions.InvalidDataException
+import org.java_websocket.drafts.Draft
 
 import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
@@ -42,6 +45,7 @@ object NotificationService {
     val port = "port"
     val bindLocal = "bindLocal"
     val hideContent = "hideContent"
+    val remoteAllowed = "remoteAllowed"
   }
 
   val queue: LinkedBlockingQueue[RenderEvent] =
@@ -60,6 +64,7 @@ object NotificationService {
 
   trait Profile {
     val addr: InetSocketAddress
+    def remoteAllowed(addr: InetSocketAddress): Boolean
     def hideContent(): Boolean
     def queryName(number: String): Option[String]
     def sendEvent(e: Event)
@@ -70,10 +75,26 @@ class NotificationServer(val p: NotificationService.Profile)
 extends WebSocketServer(p.addr) {
   import NotificationService._
 
+  val AccessDenied = 4000
   val Tag = "NotificationServer"
+
+  override def onWebsocketHandshakeReceivedAsServer(
+    c: WebSocket, d: Draft, r: ClientHandshake
+  ): ServerHandshakeBuilder = {
+    val addr = c.getRemoteSocketAddress()
+    if (!p.remoteAllowed(addr)) {
+      Log.d(Tag, addr.getAddress.getHostAddress() + " access denied")
+      throw new InvalidDataException(AccessDenied)
+    }
+    else {
+      super.onWebsocketHandshakeReceivedAsServer(c, d, r)
+    }
+  }
+
 
   override def onOpen(c: WebSocket, handshake: ClientHandshake): Unit = {
     Log.d(Tag, c + " connected")
+
     try {
       val cc = CreateCommand(
         client = "android",
@@ -95,7 +116,7 @@ extends WebSocketServer(p.addr) {
     reason: String,
     remote: Boolean
   ): Unit = {
-      p.sendEvent(ClientChange(false, connections().size))
+    p.sendEvent(ClientChange(false, connections().size))
   }
 
   override def onMessage(c: WebSocket, m: String): Unit = {
@@ -182,6 +203,10 @@ class NotificationService extends Service {
       else
         new InetSocketAddress(port)
 
+    val remoteAllowedRegexp = {
+      prefs.getString(conf.remoteAllowed, ".*")
+    }
+
     new Profile {
       import android.net.Uri
       import android.provider.ContactsContract.PhoneLookup
@@ -190,6 +215,15 @@ class NotificationService extends Service {
       val addr = bindAddr
       def hideContent(): Boolean = {
         prefs.getBoolean(conf.hideContent, true)
+      }
+
+      def remoteAllowed(addr: InetSocketAddress): Boolean = {
+        try {
+          addr.getAddress.getHostAddress().matches(remoteAllowedRegexp)
+        }
+        catch {
+          case _: Throwable ⇒ false
+        }
       }
 
       def queryName(number: String): Option[String] = {

@@ -28,6 +28,12 @@
           android:numeric="integer"
           android:title="Port"
           android:key="port" />
+      <EditTextPreference
+          android:summary="Allowed remote IP address(in regexp)"
+          android:defaultValue=".*"
+          android:dependency="serverEnabled"
+          android:title="Remote allowed"
+          android:key="remoteAllowed" />
     </PreferenceCategory>
     <PreferenceCategory
         android:title="Notification style">
