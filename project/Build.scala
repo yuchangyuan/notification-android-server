@@ -11,8 +11,12 @@ object General {
     scalaVersion := "2.9.2",
     platformName in Android := "android-10",
     javacOptions := Seq("-target", "1.6", "-source", "1.6"),
+    resolvers += "local maven" at (
+      Path.userHome.asFile.toURI.toURL + ".m2/repository"
+    ),
     libraryDependencies := Seq(
-      "net.databinder" % "dispatch-json_2.9.1" % "0.8.8"
+      "net.databinder" % "dispatch-json_2.9.1" % "0.8.8",
+      "org.java_websocket" % "Java-WebSocket" % "1.0.0-SNAPSHOT"
     )
   )
 
@@ -28,7 +32,7 @@ object General {
     AndroidManifestGenerator.settings ++
     AndroidMarketPublish.settings ++ Seq (
       keyalias in Android := "change-me",
-      libraryDependencies += "org.scalatest" %% "scalatest" % "1.8.RC1" % "test"
+      libraryDependencies += "org.scalatest" %% "scalatest" % "1.8" % "test"
     )
 }
 

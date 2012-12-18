@@ -129,7 +129,7 @@ extends WebSocketServer(p.addr) {
   }
 
   def sendToAll(m: String) = this.synchronized {
-    for (c ← asScalaSet(connections())) {
+    for (c ← connections()) {
       Log.e(Tag, "try send to " + c.getRemoteSocketAddress)
       try { c.send(m) } catch { case _: Throwable ⇒ }
     }
