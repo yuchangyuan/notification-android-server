@@ -120,7 +120,13 @@ extends WebSocketServer(p.addr) {
   }
 
   override def onMessage(c: WebSocket, m: String): Unit = {
-    Log.d(Tag, c.getRemoteSocketAddress + " get message " + m);
+    if (m.isEmpty) {
+      Log.d(Tag, c.getRemoteSocketAddress + " keep alive.")
+      c.send("")
+    }
+    else {
+      Log.d(Tag, c.getRemoteSocketAddress + " get message " + m)
+    }
     // only need to process closed event
   }
 
